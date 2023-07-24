@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from .forms import ContatoForm , ProdutoModelForm
+from .forms import ContatoForm, ProdutoModelForm
 from django.contrib import messages
 from .models import Produto
+from django.shortcuts import redirect
 # Create your views here.
 
 def index (request):
@@ -31,25 +32,27 @@ def contato(request):
 
 
 def produto(request):
-    print(f'Usuário : {request.user}')
-    if str(request.method) == 'POST':
-        form = ProdutoModelForm(request.POST, request.FILES)
-        if form.is_valid():
+    if str(request.user) != 'AnonymousUser':
+        if str(request.method) == 'POST':
+            form = ProdutoModelForm(request.POST, request.FILES)
+            if form.is_valid():
 
-            form.save()
+                form.save()
 
-            messages.success(request, 'Produto salvo com sucesso')
+                messages.success(request, 'Produto salvo com sucesso')
 
-            form = ContatoForm()
+                form = ContatoForm()
             # form realiza a limpeza das caixas , após o produto ser add
+            else:
+                messages.error(request, 'Erro ao salvar o produto')
         else:
-            messages.error(request, 'Erro ao salvar o produto')
-    else:
-        form = ProdutoModelForm()
-    context = {
-        'form': form
-    }
-    return render(request, 'produto.html', context)
+            form = ProdutoModelForm()
+        context = {
+            'form': form
+        }
+        return render(request, 'produto.html', context)
+    else :
+        return redirect('index')
 
 # abaixo do if .form_is_valid()
 '''prod = form.save(commit=False)
